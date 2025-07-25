@@ -1,0 +1,1 @@
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded;charset=UTF-8" --data-urlencode "client_id=<CLIENT_ID>" --data-urlencode "client_secret=<CLIENT_SECRET>" --data-urlencode "grant_type=client_credentials" --data-urlencode "scope=<API URI>" 'https://login.microsoftonline.com/4d0f703d-e5f2-4409-bd95-6d684848bd0b/oauth2/v2.0/token'
