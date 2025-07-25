@@ -1,0 +1,9 @@
+{
+  "statement": "call call_cortex_agent_proc('what are tier 1 products', 1)",
+  "timeout": 60,
+  "database": "<DATABASE_NAME>",
+  "schema": "<SCHEMA>",
+  "warehouse": "<WAREHOUSE_NAME>",
+  "role": "<ROLE_NAME>"
+
+}
