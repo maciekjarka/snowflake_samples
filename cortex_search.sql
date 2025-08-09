@@ -1,0 +1,52 @@
+
+-- CREATE STAGE
+list @COPILOT_DB.STATS.INVOICES_STG;
+
+CREATE OR REPLACE TABLE COPILOT_DB.STATS.INVOICES_RAW AS
+SELECT
+    RELATIVE_PATH,
+    TO_VARCHAR (
+        SNOWFLAKE.CORTEX.PARSE_DOCUMENT (
+            '@COPILOT_DB.STATS.INVOICES_STG',
+            RELATIVE_PATH,
+            {'mode': 'LAYOUT'} ):content
+        ) AS EXTRACTED_LAYOUT
+FROM
+    DIRECTORY('@COPILOT_DB.STATS.INVOICES_STG');
+
+
+  
+
+    
+CREATE OR REPLACE TABLE COPILOT_DB.STATS.INVOICES_CHUNKED AS
+SELECT
+    relative_path,
+    BUILD_SCOPED_FILE_URL(@COPILOT_DB.STATS.REGULATIONS_STG, relative_path) AS file_url,
+    CONCAT(relative_path, ': ', c.value::TEXT) AS chunk,
+    'English' AS language
+FROM
+    COPILOT_DB.STATS.INVOICES_RAW,
+    LATERAL FLATTEN(SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(
+        EXTRACTED_LAYOUT,
+        'markdown',
+        2000, -- chunks of 2000 characters
+        300 -- 300 character overlap
+    )) c;
+
+
+    --list @COPILOT_DB.STATS.COPILOT_INSURANCE_STG;
+select * from COPILOT_DB.STATS.INVOICES_CHUNKED
+CREATE OR REPLACE CORTEX SEARCH SERVICE COPILOT_DB.STATS.INVOICE_SEARCH_SERVICE
+    ON chunk
+    ATTRIBUTES language
+    WAREHOUSE = COMPUTE_WH
+    TARGET_LAG = '1 hour'
+    AS (
+    SELECT
+        chunk,
+        relative_path,
+        file_url,
+        language
+    FROM COPILOT_DB.STATS.INVOICES_CHUNKED
+    );
+
